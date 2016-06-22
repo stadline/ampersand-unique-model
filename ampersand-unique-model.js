@@ -5,6 +5,7 @@ module.exports = AmpModel.extend({
     constructor: function() {
         AmpModel.prototype.constructor.apply(this, arguments);
 
+        // on source identifier change, update source
         this.listenTo(this, 'change:'+this.idAttribute, this._setSource);
         this.listenTo(this, 'change:'+this.typeAttribute, this._setSource);
         this.listenTo(this, 'change:'+this.namespaceAttribute, this._setSource);
@@ -13,6 +14,38 @@ module.exports = AmpModel.extend({
         this.listenToAndRun(this, 'change', this._onLocalChange);
 
         this.listenTo(this, 'destroy', this._onLocalDestroy);
+    },
+    set: function (key, value, options) {
+        // retrieve "silent" option
+        var silentOption;
+
+        // Handle both `"key", value` and `{key: value}` -style arguments.
+        if (typeof key === 'string') {
+            silentOption = options && options.silent;
+        } else {
+            silentOption = value && value.silent;
+        }
+
+        // save previous source identifiers
+        var previousAttrs = {};
+
+        if (silentOption) {
+            // silent mode, handle the source manually
+            previousAttrs[this.idAttribute] = this.getId();
+            previousAttrs[this.typeAttribute] = this.getType();
+            previousAttrs[this.namespaceAttribute] = this.getNamespace();
+        }
+
+        // set values
+        var values = AmpModel.prototype.set.apply(this, arguments);
+
+        // check if source should be changed
+        if (previousAttrs && this.changedAttributes(previousAttrs)) {
+            this._setSource();
+        }
+
+        // don't forget to return values;
+        return values;
     },
     _source: null,
     _setSource: function() {

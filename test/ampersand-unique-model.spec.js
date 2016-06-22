@@ -8,7 +8,8 @@ var proxyquire = require('proxyquire');
 describe('ampersand-unique-model', function() {
     var registry;
     var AmpUniqueModel;
-    var TestModel;
+    var PersonModel;
+    var GroupModel;
 
     beforeEach(function () {
         registry = require('../ampersand-unique-registry');
@@ -19,15 +20,24 @@ describe('ampersand-unique-model', function() {
             './ampersand-unique-registry': registry
         });
 
-        TestModel = AmpUniqueModel.extend({
+        PersonModel = AmpUniqueModel.extend({
             modelType: 'TestType',
             extraProperties: 'allow',
             sync: function() {}
         });
+
+        GroupModel = AmpUniqueModel.extend({
+            modelType: 'GroupType',
+            extraProperties: 'allow',
+            sync: function() {},
+            children: {
+                person: PersonModel
+            }
+        });
     });
 
     it('should register automatically', function() {
-        var model = new TestModel();
+        var model = new PersonModel();
 
         // before edition
         expect(registry.lookup(model)).to.be.undefined;
@@ -42,7 +52,7 @@ describe('ampersand-unique-model', function() {
     });
 
     it('should unregister automatically', function() {
-        var model = new TestModel({
+        var model = new PersonModel({
             id: 123
         });
 
@@ -55,8 +65,8 @@ describe('ampersand-unique-model', function() {
     });
 
     it('should share similar sources', function() {
-        var person1 = new TestModel();
-        var person2 = new TestModel();
+        var person1 = new PersonModel();
+        var person2 = new PersonModel();
 
         // before edition
         expect(registry.lookup(person1)).to.be.undefined;
@@ -73,8 +83,8 @@ describe('ampersand-unique-model', function() {
     });
 
     it('should split different sources', function() {
-        var person1 = new TestModel();
-        var person2 = new TestModel();
+        var person1 = new PersonModel();
+        var person2 = new PersonModel();
 
         // before edition
         expect(registry.lookup(person1)).to.be.undefined;
@@ -95,10 +105,10 @@ describe('ampersand-unique-model', function() {
     });
 
     it('should syncronize changes', function() {
-        var person1 = new TestModel({
+        var person1 = new PersonModel({
             id: 123
         });
-        var person2 = new TestModel({
+        var person2 = new PersonModel({
             id: 123
         });
 
@@ -113,11 +123,11 @@ describe('ampersand-unique-model', function() {
     });
 
     it('should expand missing properties (1/2)', function() {
-        var person1 = new TestModel({
+        var person1 = new PersonModel({
             id: 123,
             name: 'Alex P.'
         });
-        var person2 = new TestModel({
+        var person2 = new PersonModel({
             id: 123
         });
 
@@ -129,10 +139,10 @@ describe('ampersand-unique-model', function() {
     });
 
     it('should expand missing properties (2/2)', function() {
-        var person1 = new TestModel({
+        var person1 = new PersonModel({
             id: 123
         });
-        var person2 = new TestModel({
+        var person2 = new PersonModel({
             id: 123,
             name: 'Alex P.'
         });
@@ -145,10 +155,10 @@ describe('ampersand-unique-model', function() {
     });
 
     it('should stop listening when identifers change', function() {
-        var person1 = new TestModel({
+        var person1 = new PersonModel({
             id: 123
         });
-        var person2 = new TestModel({
+        var person2 = new PersonModel({
             id: 123
         });
 
@@ -167,5 +177,19 @@ describe('ampersand-unique-model', function() {
         expect(person2.name).to.equal('Alex P.');
         person2.set('name', 'Jérôme W.');
         expect(person1.name).to.equal('Fabien R.');
+    });
+
+    it('should syncronize nested changes', function() {
+        var person = new PersonModel({
+            id: 123
+        });
+        var group = new GroupModel({
+            id: 456,
+            person: { id: 123 }
+        });
+
+        // the person should be the same
+        expect(group.person.id).to.equal(person.id);
+        expect(group.person._source).not.to.be.undefined;
     });
 });
