@@ -2,6 +2,7 @@ var AmpModel = require('ampersand-model');
 var registry = require('./ampersand-unique-registry');
 
 module.exports = AmpModel.extend({
+    isUnique: true,
     constructor: function() {
         AmpModel.prototype.constructor.apply(this, arguments);
 
@@ -79,6 +80,7 @@ module.exports = AmpModel.extend({
     },
     _onLocalDestroy: function() {
         if (this._source) {
+            registry.remove(this._source);
             this._source.clear();
         }
     }

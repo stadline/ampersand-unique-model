@@ -51,6 +51,18 @@ describe('ampersand-unique-model', function() {
         expect(registry.lookup(model)).to.be.undefined;
     });
 
+    it('should register a distinct instance', function() {
+        var model = new PersonModel();
+
+        // before edition
+        expect(registry.lookup(model)).to.be.undefined;
+
+        // add identifier, should be registered
+        model.set(model.idAttribute, 123);
+        expect(registry.lookup(model)).not.to.be.undefined;
+        expect(registry.lookup(model).cid).not.to.equal(model.cid);
+    });
+
     it('should unregister automatically', function() {
         var model = new PersonModel({
             id: 123
