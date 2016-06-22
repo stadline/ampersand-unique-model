@@ -1,0 +1,24 @@
+{
+  "name": "ampersand-unique-model",
+  "version": "1.0.0",
+  "description": "Unique model stay synchronized with a global source.",
+  "main": "ampersand-unique-model.js",
+  "dependencies": {
+    "ampersand-model": "^8.0.0",
+    "ampersand-registry": "^0.2.4"
+  },
+  "devDependencies": {
+    "chai": "^3.5.0",
+    "mocha": "^2.4.5",
+    "proxyquire": "^1.7.9"
+  },
+  "scripts": {
+    "test": "mocha"
+  },
+  "keywords": [
+    "ampersand",
+    "registry"
+  ],
+  "author": "alex-pex",
+  "license": "ISC"
+}
