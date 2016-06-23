@@ -22,7 +22,8 @@ describe('ampersand-unique-model', function() {
 
         PersonModel = AmpUniqueModel.extend({
             modelType: 'TestType',
-            extraProperties: 'allow',
+            extraProperties: 'reject',
+            props: { id: 'number', name: 'string' },
             sync: function() {}
         });
 
@@ -203,5 +204,12 @@ describe('ampersand-unique-model', function() {
         // the person should be the same
         expect(group.person.id).to.equal(person.id);
         expect(group.person._source).not.to.be.undefined;
+        expect(group.person._source.cid).to.equal(person._source.cid);
+
+        // make a change
+        group.person.name = 'Alice C.';
+        expect(group.person._source.name).to.equal('Alice C.');
+        expect(person._source.name).to.equal('Alice C.');
+        expect(person.name).to.equal('Alice C.');
     });
 });
