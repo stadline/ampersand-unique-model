@@ -1,6 +1,10 @@
 var AmpModel = require('ampersand-model');
 var registry = require('./ampersand-unique-registry');
 
+function extractValues(model) {
+    return model.getAttributes({props: true, session: true});
+}
+
 module.exports = AmpModel.extend({
     isUnique: true,
     constructor: function() {
@@ -66,14 +70,14 @@ module.exports = AmpModel.extend({
     },
     _onLocalChange: function() {
         if (this._source) {
-            var localAttrs = this.getAttributes({props: true, session: true});
+            var localAttrs = extractValues(this);
 
             this._source.set(localAttrs);
         }
     },
     _onSourceChange: function() {
         if (this._source) {
-            var sourceAttrs = this._source.getAttributes({props: true, session: true});
+            var sourceAttrs = extractValues(this._source);
 
             this.set(sourceAttrs);
         }

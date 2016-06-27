@@ -3,11 +3,14 @@
 
 var expect = require('chai').expect;
 var proxyquire = require('proxyquire');
+var AmpCollection = require('ampersand-collection');
 
 // test
 describe('ampersand-unique-model', function() {
     var registry;
     var AmpUniqueModel;
+    var SkillModel;
+    var SkillCollection;
     var PersonModel;
     var GroupModel;
 
@@ -20,10 +23,27 @@ describe('ampersand-unique-model', function() {
             './ampersand-unique-registry': registry
         });
 
-        PersonModel = AmpUniqueModel.extend({
-            modelType: 'TestType',
+        SkillModel = AmpUniqueModel.extend({
+            modelType: 'SkillType',
             extraProperties: 'reject',
             props: { id: 'number', name: 'string' },
+            sync: function() {}
+        });
+
+        SkillCollection = AmpCollection.extend({
+            model: SkillModel
+        });
+
+        PersonModel = AmpUniqueModel.extend({
+            modelType: 'PersonType',
+            extraProperties: 'reject',
+            props: { id: 'number', name: 'string' },
+            children: {
+                job: SkillModel
+            },
+            collections: {
+                skills: SkillCollection
+            },
             sync: function() {}
         });
 
@@ -211,5 +231,43 @@ describe('ampersand-unique-model', function() {
         expect(group.person._source.name).to.equal('Alice C.');
         expect(person._source.name).to.equal('Alice C.');
         expect(person.name).to.equal('Alice C.');
+    });
+
+    it('should not syncronize **deeply** nested changes', function() {
+        var person = new PersonModel({
+            id: 123,
+            name: "Alex P.",
+            job: {
+                id: 777,
+                name: "Developer"
+            },
+            skills: [
+                {
+                    id: 888,
+                    name: "Magic"
+                },
+                {
+                    id: 999,
+                    name: "Stuff"
+                }
+            ]
+        });
+
+        var group = new GroupModel({
+            id: 456,
+            person: { id: 123 }
+        });
+
+        // the person should be the same
+        expect(group.person.id).to.equal(person.id);
+        expect(group.person._source).not.to.be.undefined;
+        expect(group.person._source.cid).to.equal(person._source.cid);
+
+        // props should be fixed
+        expect(group.person.name).to.equal("Alex P.");
+
+        // relations should NOT be synced
+        expect(group.person.job.name).to.be.undefined;
+        expect(group.person.skills.length).to.equal(0);
     });
 });
