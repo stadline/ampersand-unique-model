@@ -21,5 +21,6 @@
     "registry"
   ],
   "author": "alex-pex",
-  "license": "ISC"
+  "license": "ISC",
+  "repository": "stadline/ampersand-unique-model"
 }
